@@ -1,4 +1,5 @@
 import { AggregateRoot } from './AggregateRoot';
+import { BaseEvent } from './events/BaseEvent';
 import {
     AccountCreated,
     AccountClosed,
@@ -158,5 +159,12 @@ export class BankAccount extends AggregateRoot {
 
     protected applyAccountClosed(event: AccountClosed): void {
         this.status = 'CLOSED';
+    }
+
+    protected applySnapshotLoaded(event: BaseEvent<any>): void {
+        this.ownerName = event.data.ownerName;
+        this.balance = event.data.balance;
+        this.currency = event.data.currency;
+        this.status = event.data.status;
     }
 }
