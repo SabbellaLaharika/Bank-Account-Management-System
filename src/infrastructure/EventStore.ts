@@ -1,7 +1,10 @@
 import { BaseEvent } from '../domain/events/BaseEvent';
 import { pool } from '../db/connection';
+import { Projector } from './Projector';
 
 export class EventStore {
+  private projector = new Projector();
+
   async saveEvents(aggregateId: string, aggregateType: string, events: BaseEvent[], expectedVersion: number): Promise<void> {
     if (events.length === 0) return;
 
@@ -38,6 +41,13 @@ export class EventStore {
       }
 
       await client.query('COMMIT');
+
+      // Asynchronous projection update (could be handled via a message queue in production)
+      for (const event of events) {
+        this.projector.processEvent(event as any).catch(err => {
+          console.error(`Failed to project event ${event.eventId}:`, err);
+        });
+      }
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
