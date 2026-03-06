@@ -3,6 +3,8 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import { pool } from './db/connection';
 import commandRoutes from './api/commandRoutes';
+import queryRoutes from './api/queryRoutes';
+import projectionRoutes from './api/projectionRoutes';
 
 dotenv.config();
 
@@ -13,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/accounts', commandRoutes);
+app.use('/api/accounts', queryRoutes);
+app.use('/api/projections', projectionRoutes);
 
 app.get('/health', async (req, res) => {
     try {
