@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 // Documentation
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/accounts', commandRoutes);
 app.use('/api/accounts', queryRoutes);
