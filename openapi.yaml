@@ -1,0 +1,345 @@
+openapi: 3.0.0
+info:
+  title: Bank Account Management API
+  version: 1.0.0
+  description: A bank account management system using Event Sourcing and CQRS.
+
+servers:
+  - url: http://localhost:{port}/api
+    variables:
+      port:
+        default: "8080"
+
+paths:
+  /accounts:
+    post:
+      summary: Create a new bank account
+      tags:
+        - Commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accountId, ownerName, initialBalance, currency]
+              properties:
+                accountId:
+                  type: string
+                ownerName:
+                  type: string
+                initialBalance:
+                  type: number
+                currency:
+                  type: string
+                  example: "USD"
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '409':
+          description: Conflict (Account already exists)
+
+  /accounts/{accountId}/deposit:
+    post:
+      summary: Deposit money into an account
+      tags:
+        - Commands
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, description, transactionId]
+              properties:
+                amount:
+                  type: number
+                  minimum: 0.01
+                description:
+                  type: string
+                transactionId:
+                  type: string
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict (Account closed)
+
+  /accounts/{accountId}/withdraw:
+    post:
+      summary: Withdraw money from an account
+      tags:
+        - Commands
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, description, transactionId]
+              properties:
+                amount:
+                  type: number
+                  minimum: 0.01
+                description:
+                  type: string
+                transactionId:
+                  type: string
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict (Insufficient funds or account closed)
+
+  /accounts/{accountId}/close:
+    post:
+      summary: Close a bank account
+      tags:
+        - Commands
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '202':
+          description: Accepted
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict (Balance not zero)
+
+  /accounts/{accountId}:
+    get:
+      summary: Get current account summary
+      tags:
+        - Queries
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accountId:
+                    type: string
+                  ownerName:
+                    type: string
+                  balance:
+                    type: number
+                  currency:
+                    type: string
+                  status:
+                    type: string
+        '404':
+          description: Not Found
+
+  /accounts/{accountId}/transactions:
+    get:
+      summary: Get transaction history
+      tags:
+        - Queries
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPage:
+                    type: integer
+                  pageSize:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  totalCount:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        transactionId:
+                          type: string
+                        type:
+                          type: string
+                        amount:
+                          type: number
+                        description:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+        '404':
+          description: Not Found
+
+  /accounts/{accountId}/events:
+    get:
+      summary: Get full event stream
+      tags:
+        - Queries
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    eventId:
+                      type: string
+                      format: uuid
+                    eventType:
+                      type: string
+                    eventNumber:
+                      type: integer
+                    data:
+                      type: object
+                    timestamp:
+                      type: string
+                      format: date-time
+        '404':
+          description: Not Found
+
+  /accounts/{accountId}/balance-at/{timestamp}:
+    get:
+      summary: Time-travel query to get balance at timestamp
+      tags:
+        - Queries
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timestamp
+          in: path
+          required: true
+          description: URL encoded ISO 8601 timestamp
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accountId:
+                    type: string
+                  balanceAt:
+                    type: number
+                  timestamp:
+                    type: string
+                    format: date-time
+        '404':
+          description: Not Found
+
+  /projections/rebuild:
+    post:
+      summary: Trigger full rebuild of read models
+      tags:
+        - Projections
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /projections/status:
+    get:
+      summary: Get projection status
+      tags:
+        - Projections
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEventsInStore:
+                    type: integer
+                  projections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        lastProcessedEventNumberGlobal:
+                          type: integer
+                        lag:
+                          type: integer

@@ -5,14 +5,23 @@ import { pool } from './db/connection';
 import commandRoutes from './api/commandRoutes';
 import queryRoutes from './api/queryRoutes';
 import projectionRoutes from './api/projectionRoutes';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.API_PORT || 8080;
 
+// Load Swagger document
+const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
+
 app.use(cors());
 app.use(express.json());
+
+// Documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/accounts', commandRoutes);
 app.use('/api/accounts', queryRoutes);
