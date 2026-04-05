@@ -1,49 +1,72 @@
-# Bank Account Management System with ES/CQRS
+# Bank Account Management System (Event Sourcing & CQRS)
 
-This project implements a backend API for a Bank Account Management System using Event Sourcing (ES) and Command Query Responsibility Segregation (CQRS) patterns. All changes to an account's state are stored as a sequence of immutable events, while materialized read models provide fast querying.
+A fully functional bank account management API built with Node.js, Express, and PostgreSQL using **Event Sourcing** and **CQRS** (Command Query Responsibility Segregation) patterns.
 
-## Features
+## 🚀 Overview
 
-- **Event Sourcing (Write Side):** Stores domain events (`AccountCreated`, `MoneyDeposited`, `MoneyWithdrawn`, `AccountClosed`) in a PostgreSQL event store for a complete audit trail.
-- **CQRS (Read Side):** Separate projections (`account_summaries` and `transaction_history`) optimized for queries are updated by a projector listening to the event stream.
-- **Idempotency:** Command handlers (like depositing and withdrawing money) check for processed `transactionId`s to safely handle repeated requests.
-- **Snapshotting Strategy:** To rapidly load account state without replaying all events from the beginning of time, a snapshot is automatically generated every 50 events. Future loads hydrate from the snapshot first.
-- **Time-Travel Queries:** Reconstruct the exact account balance at any specific point in history by replaying events up to that timestamp.
-- **Administrative Utilities:** An endpoint triggers a full rebuild of the projections by replaying the entire event stream.
+This project implements a highly auditable and scalable banking system where:
+-   **Events** are the single source of truth (Event Sourcing).
+-   **Read Models** are separated from **Write Models** for optimal query performance (CQRS).
+-   **Snapshots** are used to optimize aggregate state reconstruction.
+-   **Projections** rebuild read-only summary views asynchronously from the event stream.
 
-## Setup and Installation
+## 🏗️ Architecture
 
-The system is fully containerized with Docker and Docker Compose. Ensure you have Docker Desktop installed on your system.
+-   **Write Side (Commands):** Validates business rules against the current aggregate state and persists events.
+-   **Read Side (Queries):** Serves optimized JSON views of accounts and transaction history.
+-   **Event Store:** An immutable log of all state changes in PostgreSQL.
+-   **Projector:** Processes events and updates the read-model tables (`account_summaries`, `transaction_history`).
+-   **Snapshots:** Created every 50 events to minimize history replay time.
 
-1.  **Environment Variables:**
-    A `.env.example` file is included in the root directory. You can copy it or simply rely on it, as the variables default within the `docker-compose.yml` if not present.
+## 🛠️ Tech Stack
 
-2.  **Start Services:**
-    Run the following command in the root of the project to build the application and start the PostgreSQL database and NodeJS server:
-    ```bash
-    docker-compose up --build
-    ```
-    - The PostgreSQL server will start and automatically run the schema creation scripts in `seeds/init.sql`.
-    - The Node API server will wait for the database healthcheck to be healthy before starting.
-    - The API will be accessible on `http://localhost:8080`.
+-   **Backend:** Node.js, TypeScript, Express
+-   **Database:** PostgreSQL
+-   **Documentation:** Swagger UI (OpenAPI 3.0)
+-   **Containerization:** Docker, Docker Compose
 
-## API Endpoints Overview
+## 📦 Setup & Installation
 
-### Command Endpoints (Write Model)
-- `POST /api/accounts` - Create a new bank account.
-- `POST /api/accounts/:accountId/deposit` - Deposit money into an account.
-- `POST /api/accounts/:accountId/withdraw` - Withdraw money.
-- `POST /api/accounts/:accountId/close` - Close an account.
+### Prerequisites
+-   Docker and Docker Compose installed.
 
-### Query Endpoints (Read Model)
-- `GET /api/accounts/:accountId` - Get the current state summary of an account.
-- `GET /api/accounts/:accountId/transactions` - Get a paginated list of all transactions.
-- `GET /api/accounts/:accountId/events` - Get the full raw event stream for auditing.
-- `GET /api/accounts/:accountId/balance-at/:timestamp` - Time-travel query for past balances.
+### 1. Configure Environment
+Create a `.env` file from the example:
+```bash
+cp .env.example .env
+```
 
-### Projection Endpoints (Administrative)
-- `GET /api/projections/status` - Check projection sync lag and statuses.
-- `POST /api/projections/rebuild` - Initiate a full rebuild of the `account_summaries` and `transaction_history` tables.
+### 2. Start the System
+Run the following command to build and start all services:
+```bash
+docker-compose up --build
+```
+The API will be available at `http://localhost:8081/api` (or your configured `API_PORT`).
 
-## Testing Data
-The `submission.json` file contains test data used for evaluating the API structure.
+### 3. API Documentation
+Interactive Swagger UI is available at:
+**`http://localhost:8081/docs`**
+
+## 📖 API Usage Guide
+
+### **Commands (Write Operations)**
+-   `POST /api/accounts`: Create a new account.
+-   `POST /api/accounts/{id}/deposit`: Deposit funds.
+-   `POST /api/accounts/{id}/withdraw`: Withdraw funds (checks for sufficient balance).
+-   `POST /api/accounts/{id}/close`: Close an account (requires zero balance).
+
+### **Queries (Read Operations)**
+-   `GET /api/accounts/{id}`: Get account current status.
+-   `GET /api/accounts/{id}/transactions`: Paginated history of deposits and withdrawals.
+-   `GET /api/accounts/{id}/events`: Full audit trail (event stream).
+-   `GET /api/accounts/{id}/balance-at/{timestamp}`: Time-travel query for historical balance.
+
+### **Administrative**
+-   `POST /api/projections/rebuild`: Triggers a full reconstruction of read-model projections from the event store.
+-   `GET /api/projections/status`: Shows the lag and status of projections.
+
+## 🧪 Testing with Demo Data
+The system comes with a pre-seeded account for quick testing:
+-   **Account ID:** `acc-test-12345`
+-   **Owner:** Jane Doe (from `submission.json`)
+-   **Initial Account:** `acc-12345` / John Doe (from seed script)

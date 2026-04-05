@@ -26,16 +26,28 @@ paths:
               properties:
                 accountId:
                   type: string
+                  example: "acc-test-12345"
+                  description: Unique identifier for the account
                 ownerName:
                   type: string
+                  example: "John Doe"
                 initialBalance:
                   type: number
+                  example: 1000.00
                 currency:
                   type: string
                   example: "USD"
       responses:
         '202':
           description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account creation request accepted"
         '400':
           description: Bad Request
         '409':
@@ -52,6 +64,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
       requestBody:
         required: true
         content:
@@ -63,10 +76,13 @@ paths:
                 amount:
                   type: number
                   minimum: 0.01
+                  example: 500.00
                 description:
                   type: string
+                  example: "Monthly salary"
                 transactionId:
                   type: string
+                  example: "tx-abc-987"
       responses:
         '202':
           description: Accepted
@@ -88,6 +104,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
       requestBody:
         required: true
         content:
@@ -99,10 +116,13 @@ paths:
                 amount:
                   type: number
                   minimum: 0.01
+                  example: 200.00
                 description:
                   type: string
+                  example: "ATM Withdrawal"
                 transactionId:
                   type: string
+                  example: "tx-xyz-456"
       responses:
         '202':
           description: Accepted
@@ -124,6 +144,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
       requestBody:
         required: true
         content:
@@ -133,6 +154,7 @@ paths:
               properties:
                 reason:
                   type: string
+                  example: "Moving to another bank"
       responses:
         '202':
           description: Accepted
@@ -152,6 +174,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
       responses:
         '200':
           description: Success
@@ -162,14 +185,19 @@ paths:
                 properties:
                   accountId:
                     type: string
+                    example: "acc-test-12345"
                   ownerName:
                     type: string
+                    example: "John Doe"
                   balance:
                     type: number
+                    example: 1300.00
                   currency:
                     type: string
+                    example: "USD"
                   status:
                     type: string
+                    example: "OPEN"
         '404':
           description: Not Found
 
@@ -184,16 +212,19 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
         - name: page
           in: query
           schema:
             type: integer
             default: 1
+            example: 1
         - name: pageSize
           in: query
           schema:
             type: integer
             default: 10
+            example: 10
       responses:
         '200':
           description: Success
@@ -204,12 +235,16 @@ paths:
                 properties:
                   currentPage:
                     type: integer
+                    example: 1
                   pageSize:
                     type: integer
+                    example: 10
                   totalPages:
                     type: integer
+                    example: 1
                   totalCount:
                     type: integer
+                    example: 2
                   items:
                     type: array
                     items:
@@ -217,15 +252,20 @@ paths:
                       properties:
                         transactionId:
                           type: string
+                          example: "tx-abc-987"
                         type:
                           type: string
+                          example: "DEPOSIT"
                         amount:
                           type: number
+                          example: 500.00
                         description:
                           type: string
+                          example: "Monthly salary"
                         timestamp:
                           type: string
                           format: date-time
+                          example: "2024-03-01T10:00:00Z"
         '404':
           description: Not Found
 
@@ -240,6 +280,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
       responses:
         '200':
           description: Success
@@ -253,15 +294,20 @@ paths:
                     eventId:
                       type: string
                       format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
                     eventType:
                       type: string
+                      example: "MoneyDeposited"
                     eventNumber:
                       type: integer
+                      example: 2
                     data:
                       type: object
+                      example: { "amount": 500, "description": "Salary", "transactionId": "tx-abc-987" }
                     timestamp:
                       type: string
                       format: date-time
+                      example: "2024-03-01T10:00:00Z"
         '404':
           description: Not Found
 
@@ -276,6 +322,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "acc-test-12345"
         - name: timestamp
           in: path
           required: true
@@ -283,6 +330,7 @@ paths:
           schema:
             type: string
             format: date-time
+            example: "2024-03-01T12:00:00Z"
       responses:
         '200':
           description: Success
@@ -293,11 +341,14 @@ paths:
                 properties:
                   accountId:
                     type: string
+                    example: "acc-test-12345"
                   balanceAt:
                     type: number
+                    example: 1000.00
                   timestamp:
                     type: string
                     format: date-time
+                    example: "2024-03-01T12:00:00Z"
         '404':
           description: Not Found
 
@@ -316,6 +367,7 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Projection rebuild started"
 
   /projections/status:
     get:
@@ -332,6 +384,7 @@ paths:
                 properties:
                   totalEventsInStore:
                     type: integer
+                    example: 150
                   projections:
                     type: array
                     items:
@@ -339,7 +392,10 @@ paths:
                       properties:
                         name:
                           type: string
+                          example: "account_summaries"
                         lastProcessedEventNumberGlobal:
                           type: integer
+                          example: 150
                         lag:
                           type: integer
+                          example: 0

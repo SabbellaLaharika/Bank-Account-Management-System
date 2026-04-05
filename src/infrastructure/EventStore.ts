@@ -43,9 +43,9 @@ export class EventStore {
 
       await client.query('COMMIT');
 
-      // Snapshotting Logic
+      // Snapshotting Logic: Trigger at the 51st, 101st, 151st etc event
       const newVersion = currentVersion + events.length;
-      if (Math.floor(currentVersion / 50) < Math.floor(newVersion / 50)) {
+      if (newVersion >= 51 && Math.floor((newVersion - 1) / 50) > Math.floor((currentVersion - 1) / 50)) {
         await this.createSnapshot(aggregateId, aggregateType);
       }
 
