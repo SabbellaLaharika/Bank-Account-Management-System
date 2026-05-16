@@ -12,7 +12,7 @@ This project implements a highly auditable and scalable banking system where:
 
 ## 🏗️ Architecture
 
-![System Architecture](./portfolio_architecture.png)
+![System Architecture](./images/portfolio_architecture.png)
 
 
 -   **Write Side (Commands):** Validates business rules against the current aggregate state and persists events.
@@ -25,7 +25,7 @@ This project implements a highly auditable and scalable banking system where:
 
 ## 🧠 Why Event Sourcing? (CRUD vs. Event Sourcing)
 
-![CRUD vs Event Sourcing](./crud%20vs%20event%20sourcing.gif)
+![CRUD vs Event Sourcing](./images/crud%20vs%20event%20sourcing.gif)
 
 
 Traditional database architectures rely heavily on CRUD (Create, Read, Update, Delete) where the application state is directly modified and overwritten. 
@@ -127,17 +127,17 @@ Building this robust, fault-tolerant ledger system required addressing critical 
 *   **⚡ Challenge 1: Replay Latency & Hydration Bottlenecks**
     *   *Solution:* Implemented automatic **State Snapshotting**. Every 50 events, the aggregate’s stable state is serialized into a `snapshots` table. Reconstituting an account now only reads the latest snapshot and replays relative incremental events, rendering loading speeds constant regardless of historical transaction depth.
 
-![State Snapshotting Optimization](./state_snapshotting.png)
+![State Snapshotting Optimization](./images/state_snapshotting.png)
 
 *   **🔒 Challenge 2: Data Integrity & Concurrency Control**
     *   *Solution:* Eliminated catastrophic race conditions using **Optimistic Concurrency Control**. By enforcing a composite unique database index on `(aggregate_id, event_number)` and executing version mismatch checks strictly inside atomic SQL `BEGIN` transactions, conflicting updates trigger immediate 409 exception safeties.
 
-![Optimistic Concurrency Control](./optimistic_concurrency.png)
+![Optimistic Concurrency Control](./images/optimistic_concurrency.png)
 
 *   **🔢 Challenge 3: Arithmetic precision in Floating Point maths**
     *   *Solution:* Adopted dedicated PostgreSQL `DECIMAL` formats to store precision-sensitive assets. Bridged JavaScript’s default string serialization to accurate numeric casts before calculation layers to safeguard against hidden rounding discrepancies.
 
-![Precision Financial Arithmetic](./precision_arithmetic.png)
+![Precision Financial Arithmetic](./images/precision_arithmetic.png)
 
 ---
 
@@ -147,7 +147,7 @@ While this system is designed to showcase high-performance ledger concepts, scal
 
 *   **Out-of-Process Projection:** Currently, projectors run in-process using Express promises. For distributed scalability, projectors should be decoupled into out-of-process consumers listening to a dedicated message broker (e.g., Apache Kafka or RabbitMQ).
 
-![Distributed Message Broker Scaling](./kafka_roadmap.png)
+![Distributed Message Broker Scaling](./images/kafka_roadmap.png)
 
 *   **Event Schema Evolution (Upcasting):** Over time, business requirements change event structures. Implementing event upcasters would allow old event payloads to be dynamically transformed into newer formats on the fly during aggregate reconstruction.
 
