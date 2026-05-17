@@ -84,11 +84,11 @@ Run the following command to build and start all services:
 ```bash
 docker-compose up --build
 ```
-The API will be available at `http://localhost:8081/api` (or your configured `API_PORT`).
+The API will be available at `http://localhost:8080/api` (or your configured `API_PORT`).
 
 ### 3. API Documentation
 Interactive Swagger UI is available at:
-**`http://localhost:8081/docs`**
+**`http://localhost:8080/docs`**
 
 ---
 
